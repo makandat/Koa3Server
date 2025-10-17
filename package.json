@@ -1,0 +1,25 @@
+{
+  "name": "koa3.js",
+  "version": "1.0.15",
+  "description": "File Transfer with Koa.js",
+  "license": "ISC",
+  "author": "makandat",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@koa/router": "^14.0.0",
+    "date-fns": "^4.1.0",
+    "koa": "^3.0.1",
+    "koa-body": "^6.0.1",
+    "koa-bodyparser": "^4.4.1",
+    "koa-logger": "^4.0.0",
+    "koa-session": "^7.0.2",
+    "koa-static": "^5.0.0",
+    "koa-views": "^8.1.0",
+    "pug": "^3.0.3"
+  }
+}

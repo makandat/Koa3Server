@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset=""utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>README</title>
+    <link rel="stylesheet" href="style1.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <style>
+      h4 {
+        margin-top:4px;
+        padding:4px;
+        color:palevioletred;
+      }
+    </style>
+  </head>
+  <body class="container">
+    <header>
+      <h1 style="color:crimson;">KOA3 server README</h1>
+    </header>
+
+    <article class="mt-4 ms-4">
+      <h2 style="color:red;">&#x1f4d9; このウェブアプリケーションについて</h2>
+      <ul>
+        <li>リモートコンピュータとのファイルの送受信を行う。</li>
+        <li>リモートコンピュータのファイルシステムの操作を行う。</li>
+      </ul>
+
+      <h2 style="color:red;">&#x1f4d9; インストール</h2>
+       <p>このプロジェクトを Github からクローンして、npm install を実行して必要なモジュールをインストールする。</p>
+       <p>$ git clone https://gihub.com/makandat/koa3_server</p>
+
+      <h2 style="color:red;">&#x1f4d9; 起動</h2>
+       <p>node index.js または npm start で起動できる。</p>
+
+      <h2 style="color:red;">&#x1f4d9; 機能一覧</h2>
+       <ul>
+        <li><a href="#fileupload">ファイルアップロード</a></li>
+        <li><a href="#filedownload">ファイルダウンロード</a></li>
+        <li><a href="#places">場所のクイックアクセス</a></li>
+        <li><a href="#mkdir">フォルダの作成</a></li>
+        <li><a href="#delete">ファイルやフォルダの削除</a></li>
+        <li><a href="#preview">テキストファイルのプレビュー</a></li>
+        <li><a href="#deflate">タールボール (.tar.gz) の作成</a></li>
+        <li><a href="#inflate">タールボール (.tar.gz) の解凍</a></li>
+        <li><a href="#copy">ファイルのコピー</a></li>
+        <li><a href="#rename">名前の変更</a></li>
+       </ul>
+
+       <h4><a id="fileupload">ファイルアップロード</a></h4>
+        <p>エクスプローラなどからアップロードするファイルを「ここにファイルをドロップ」領域にドロップして「今すぐアップロード」ボタンをクリックするとファイルアップロードが開始される。</p>
+
+       <h4><a id="filedownload">ファイルダウンロード</a></h4>
+        <p>メインページでダウンロードしたいファイルの左にある * をクリックするとそのファイルのパスがコピーされるので、「ファイルダウンロード」テキストエリアに貼り付ける。
+          「ダウンロードリンクを作成」ボタンをクリックするとダウンロードリンクが作成されるので、そのリンクをクリックするとダウンロードが開始される。</p>
+
+       <h4><a id="places">場所のクイックアクセス</a></h4>
+        <p>メイン画面の上の方にはよく使う場所のリンクがある。これは、「場所の編集」メニューで編集できる。</p>
+
+       <h4><a id="mkdir">フォルダの作成</a></h4>
+        <p>「フォルダ作成」メニューを実行すると、フォルダ作成ページが表示されるのでフォルダのフルパスを入力して「作成する」ボタンをクリックする。</p>
+
+       <h4><a id="delete">ファイルやフォルダの削除</a></h4>
+        <p>
+          ファイルを削除するには「ファイル削除」メニューを、フォルダを削除するには「フォルダ削除」メニューを実行する。これらのメニューを実行するとそれぞれのページが開くので、フルパスを入力して「削除する」ボタンをクリックする。
+          <br>注意：フォルダ削除の機能は Linux コマンドを実行して削除を行うため、Windows では使用できない。
+        </p>
+
+       <h4><a id="preview">テキストファイルのプレビュー</a></h4>
+        <p>ファイル一覧表示で、ファイルをクリックすると右側領域にあるテキストファイル・プレビューにそのファイル内容が表示される。バイナリーファイルの区別はしないので、拡張子などで判別してバイナリーファイルを表示しないように注意すること。</p>
+
+       <h4><a id="deflate">タールボール (.tar.gz) の作成</a></h4>
+        <p>
+         フォルダをまとめてダウンロードするためには、まず .tar.gz ファイルを作成する必要がある。「タールボール作成」メニューを実行すると、タールボール作成ページが開く。
+        </p>
+
+       <h4><a id="inflate">タールボール (.tar.gz) の解凍</a></h4>
+        <p>
+         フォルダをまとめてアップロードするためには、クライアント側で .tar.gz ファイルを作成してファイルアップロードする。「タールボール解凍」メニューをクリックすると、タールボール解凍のためのページが開く。
+        </p>
+
+       <h4><a id="copy">ファイルのコピー</a></h4>
+        <p>
+         「ファイルコピー」メニューを実行すると、ファイルコピーのページが開く。
+        </p>
+
+       <h4><a id="rename">名前の変更</a></h4>
+        <p>
+         「名前の変更」メニューを開くと名前の変更をするためのページが開く。
+        </p>
+
+    </article>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+  </body>
+</html>

@@ -1,0 +1,21 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title #{title}
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css')
+    link(rel='stylesheet', href="style1.css")
+  body
+    .container
+      h1 フォルダの作成
+      .menu
+        a.p-3(href="javascript: window.close()") フォームを閉じる
+      form.mt-4(method="POST")
+        label.form-label
+          | フォルダのパス名
+          input.form-control(name="folder", id="folder", size="80")
+        br
+        button.btn.btn-primary 作成する
+      p.message #{message}
+        

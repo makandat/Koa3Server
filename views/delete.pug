@@ -1,0 +1,28 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title #{title}
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css')
+    link(rel='stylesheet', href="style1.css")
+    script.
+      // クリップボードから貼り付け。ただし https でのみ動作する。
+      async function pasteText() {
+        const s = await navigator.clipboard.readText()
+        const file = document.getElementById('file').value
+        file = s
+      }
+  body
+    .container
+      h1 ファイルの削除
+      .menu
+        a.p-3(href="javascript: window.close()") フォームを閉じる
+        //- a.p-3(href="javascript:pasteText()") 貼り付け
+      form.mt-4(method="POST")
+        label.form-label
+          | 削除するファイルのパス名
+          input.form-control(name="file", id="file", size="80")
+        br
+        button.btn.btn-primary 削除する
+      p.message #{message}

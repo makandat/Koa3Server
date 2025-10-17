@@ -1,0 +1,237 @@
+doctype html 
+html 
+  head 
+    meta(charset='UTF-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title #{title}
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css')
+    style.
+      h1 {
+        color: navy;
+        border-radius: 8px;
+        border: thin solid blue;
+        font-size: 3em;
+        background-color: lightcyan;
+      }
+      #message {
+        color: magenta;
+        font-size: 1.2em;
+        padding: 5px;
+        font-weight: bold;
+        text-align: center;
+      }
+      #filelist {
+        border: thin solid gray;
+        height:1200px;
+        background: lavender;
+        padding: 10px;
+        margin-top: 8px;
+        margin-bottom: 8px;
+        overflow: auto;
+      }
+      #menulist {
+        border: thin solid gray;
+        background: honeydew;
+        padding: 6px;
+        margin-top: 8px;
+        margin-bottom: 8px;
+      }
+      #locations {
+        border: thin solid gray;
+        background: lightyellow;
+        padding: 6px;
+        margin-bottom: 10px;
+        margin-top: 8px;
+      }
+      #droparea {
+        border: dashed 4px gray;
+        background: lightgray;
+        height: 100px;
+        text-align: center;
+        line-height: 100px;
+        font-size: 1.5em;
+        color: dimgray;
+        margin-top: 6px;
+        margin-bottom: 10px;
+      }
+      #filesdiv {
+        font-size:11pt;
+        text-align: left;
+        color: brown;
+      }
+      #textfile {
+        border: solid thin silver;
+        border-radius: 6px;
+        box-shadow: 8px 8px 6px silver;
+        font-size: 10pt;
+        padding: 4px;
+        background-color: white;
+        height: 320px;
+        overflow: auto;
+
+      }
+      .subtitle {
+        color: indigo;
+        margin-top: 10px;
+        font-size: 1em;
+      }
+      a:link, a:visited {
+        text-decoration: none;
+        color: red;
+      }
+    script.
+      var destination 
+
+      /* ウィンドウがロードされたとき */
+      window.onload = function() {
+        filesdiv = document.getElementById("filesdiv");
+      }
+  
+      /* loc をクリップボードにコピーする。*/
+      function copyLocation(loc) {
+        document.getElementById("selected_item").value = loc
+        destination = loc
+        navigator.clipboard.writeText(loc)
+          .then(() => alert(loc + ' をコピーしました。'))
+          .catch(err => alert('コピーに失敗。' + err))
+      }
+      /* ファイル一覧を表示する。*/
+      function show_files(files) {
+        filesdiv.innerHTML = "";
+        for (let file of files) {
+          filesdiv.innerHTML += "<li>" + file.name + "</li>";
+        }
+      }
+      
+      /* ドロップ対象へ入ったとき */
+      function dest_drag_enter(event) {
+        // 既定の動作をキャンセルしてドロップできるようにする。
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+      }
+
+      /* ドロップ対象の上でドラッグ中 */
+      function dest_drag_over(event) {
+        // 既定の動作をキャンセルしてドロップできるようにする。
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+      }
+
+      /* ドロップ動作 */
+      function dest_drop(event) {
+        // 既定の動作をキャンセルしてドロップできるようにする。
+        event.preventDefault();
+        const droped_files = event.dataTransfer.files
+        // ファイル保存先の設定
+        const selected_item = document.getElementById('selected_item').value
+        if (selected_item == '') {
+          alert('エラー：ファイルのアップロード先が空欄です。')
+          return
+        }
+        // ドロップされたデータを取得する。
+        const input_file = document.getElementById('files')
+        input_file.files = droped_files
+        // ファイル一覧を表示
+        show_files(input_file.files)
+      }
+
+      /* ファイルダウンロードのリンクを作る。*/
+      function download_link() {
+        const filedownloads = document.getElementById('filedownloads').value.split('\n')
+        const download_links = document.getElementById('download_links')
+        for (const item of filedownloads) {
+          const filename = item.trim()
+          if (filename) {
+            // ダウンロードリンクを生成
+            const li = document.createElement('li')
+            const a = document.createElement('a')
+            a.href = '/download?path=' + encodeURIComponent(filename)
+            a.textContent = filename
+            a.target = "_blank"
+            li.appendChild(a)
+            download_links.appendChild(li)
+          }
+        }
+      }
+
+      // クリップボードにコピーする。
+      function copyPlace(place) {
+        navigator.clipboard.writeText(place)
+        alert('クリップボードにコピーしました。')
+      }
+
+      // テキストファイルをプレビュー表示する。
+      function previewText(file) {
+        const textfile = document.getElementById('textfile')
+        fetch('/get_textfile?file=' + file)
+        .then(res => res.text())
+        .then(text => textfile.innerText = text)
+      }
+  body
+    header.container
+      h1.text-center.p-4 #{title}
+    article.container 
+      #message 場所： 
+        | <a href="javascript:copyPlace('#{place}')">#{place}</a>
+      #locations
+        ul(style="list-style-type: none;")
+          each i in locations 
+            | <li style="float: left;"><a href="/folder?path=#{i}">#{i}</a>　</li>
+      section.row
+        #filelist.col
+          ul(style="list-style: none;")
+            | <li>.</a>
+            | <li><a href="/move?location=..">..</a></li>
+            each loc in content
+              if loc[0].endsWith('/')
+                |  <li><a href="javascript:copyLocation('#{place}#{loc[0]}')">*</a> <a href="/move?location=#{loc[0]}">#{loc[0]}</a> - Dir | #{loc[3]} | #{loc[1]}</li>
+              else if loc[0].indexOf('=') > 0
+                - var symlink = loc[0].split('=')[1]
+                |  <li><a href="javascript:copyLocation('#{place}#{loc[0]}')">*</a> <a href="/move?location=#{symlink}">#{loc[0]}</a> - Dir | #{loc[3]} | #{loc[1]}</li>
+              else if loc[0].startsWith('.') == false
+                |  <li><a href="javascript:copyLocation('#{place}#{loc[0]}')">*</a> <a href="javascript:previewText('#{place}#{loc[0]}')">#{loc[0]}</a> - #{loc[3]} | #{loc[1]} | #{loc[2]}</li>
+        #menulist.col
+          ul(style="margin-top: 16px;")
+            li
+              a(href='javascript:location.reload()') リロード
+            li
+              a(href='/mkdir', target='_blank') フォルダ作成
+            li
+              a(href='/rename', target='_blank') 名前の変更(フォルダ可)
+            li
+              a(href='/delete', target='_blank') ファイル削除
+            li
+              a(href='/removedir', target='_blank') フォルダ削除(Windows不可)
+            li
+              a(href='/copy', target='_blank') ファイルコピー
+            li
+              a(href='/tarball', target='_blank') タールボール作成
+            li
+              a(href='/inflate', target='_blank') タールボール解凍
+            li
+              a(href='/places', target='_blank') 場所の編集
+            li
+              a(href="README.html", target="_blank") README
+          form(id="form1", method="POST", enctype="multipart/form-data", action="/file_upload")
+            input(type="file", name="files", id="files", multiple, style='display:none')
+            h4.subtitle ファイルアップロード先
+            input.form-control(type="text", name="dest", id="selected_item", disabled:true)
+            input.btn.btn-primary(type="submit" id="submit_button", value="今すぐアップロード")
+          #droparea(ondragenter="dest_drag_enter(event);", ondragover="dest_drag_over(event);", ondrop="dest_drop(event);")
+            | ここにファイルをドロップ
+          ul#filesdiv
+          h4.subtitle ファイルダウンロード
+          form(id="form2", method="POST", action="/download")
+            textarea(id="filedownloads", name="filedownloads", cols="30", rows="6", class="form-control")
+            input(type="button", class="btn btn-primary", value="ダウンロードリンクを作成", onclick="javascript:download_link()")
+          ul.mt-3#download_links
+          h4.subtitle テキストファイル・プレビュー
+          pre#textfile
+            code
+              | ----
+    footer.container 
+      p &nbsp;
+      .text-center.p-4
+        a(href='#top') TOP
+      p &nbsp;
+      p &nbsp;

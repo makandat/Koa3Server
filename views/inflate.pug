@@ -1,0 +1,24 @@
+doctype html 
+html
+  head
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title #{title}
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css')
+    link(rel='stylesheet', href="style1.css")
+  body
+    .container
+      h1 タールボールの解凍
+      .menu
+        a.p-3(href="javascript: window.close()") フォームを閉じる
+      form.mt-4(method="POST")
+        label.form-label
+          | タールボールのパス名
+          input.form-control(name="targz", id="targz", size="80")
+        br
+        label.form-label
+          | 解凍先のフォルダ(指定なしの場合はタールボールと同じ場所)
+          input.form-control(name="target", id="target", size="80")
+        br
+        button.btn.btn-primary 解凍する
+      p.message #{message}

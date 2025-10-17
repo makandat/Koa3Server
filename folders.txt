@@ -1,0 +1,6 @@
+C:/
+E:/
+C:/workspace
+C:/temp
+E:/Pictures
+E:/Videos

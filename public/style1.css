@@ -1,0 +1,19 @@
+/* style1.css */
+h1 {
+  text-align: center;
+  color: navy;
+  padding :8px;
+}
+.menu {
+  background-color: whitesmoke;
+  padding: 5px;
+  margin-top: 16px;
+  margin-bottom:10px;
+}
+.message {
+  text-align: center;
+  color: magenta;
+  padding: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}

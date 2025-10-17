@@ -1,0 +1,25 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title #{title}
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css')
+    link(rel='stylesheet', href="style1.css")
+  body
+    .container
+      h1 ファイルのコピー
+      .menu
+        a.p-3(href="javascript: window.close()") フォームを閉じる
+      form.mt-4(method="POST")
+        label.form-label
+          | コピー元のファイルのパス名
+          input.form-control(name="sourcefile", id="sourcefile", size="80")
+        br
+        label.form-label
+          | コピー先のファイルのパス名(フォルダも可)
+          input.form-control(name="destfile", id="destfile", size="80")
+        br
+        button.btn.btn-primary コピーする
+      p.message #{message}
+        
