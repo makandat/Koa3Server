@@ -1,0 +1,34 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title #{title}
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css')
+    link(rel='stylesheet', href="style1.css")
+    script.
+      function clearContent() {
+        document.getElementById('content').value = '';
+      }
+  body
+    .container
+      h1 #{title}
+      .menu
+        a.p-3(href="javascript: window.close()") フォームを閉じる
+        | |
+        a.p-3(href="javascript:clearContent()") テキストエリアをクリア
+      .message #{message}
+      form.mt-4(method="POST")
+        .form-row
+          label.form-label
+             | ファイルのパス名
+             input.form-control(type="text", name="path", id="path", size="100", placeholder="/home/user/filename", value=path)
+        .form-row
+          label.form-label
+             | ファイル内容
+             textarea.form-control(name="content", id="content", cols="100", rows="10")= content
+        div(style="margin-top:16px;")
+          button.btn.btn-primary(type="submit", style="margin-right:4px;" name="action_type", value="open") 読み込む
+          button.btn.btn-primary(type="submit", style="margin-right:4px;", name="action_type", value="save") 上書き保存
+          button.btn.btn-primary(type="submit", name="action_type", value="save_as") 名前を付けて保存
+      p &nbsp;

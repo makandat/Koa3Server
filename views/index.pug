@@ -89,7 +89,7 @@ html
   
       /* loc をクリップボードにコピーする。*/
       function copyLocation(loc) {
-        document.getElementById("selected_item").value = loc
+        //document.getElementById("selected_item").value = loc
         destination = loc
         navigator.clipboard.writeText(loc)
           .then(() => alert(loc + ' をコピーしました。'))
@@ -156,8 +156,13 @@ html
 
       // クリップボードにコピーする。
       function copyPlace(place) {
-        navigator.clipboard.writeText(place)
-        alert('クリップボードにコピーしました。')
+        if (window.location.protocol === 'https:' || window.location.hostname === 'localhost') {
+          navigator.clipboard.writeText(place)
+          alert('クリップボードにコピーしました。')
+        }
+        else {
+          alert('クリップボードへのコピーはHTTPS接続またはlocalhostでのみ動作します。')
+        }
       }
 
       // テキストファイルをプレビュー表示する。
@@ -175,22 +180,24 @@ html
         | <a href="javascript:copyPlace('#{place}')">#{place}</a>
       #locations
         ul(style="list-style-type: none;")
+          <li><a style="float: left;" href="javascript:location.reload()">&#x1f505;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></li>
           each i in locations 
             | <li style="float: left;"><a href="/folder?path=#{i}">#{i}</a>　</li>
       section.row
         #filelist.col
           ul(style="list-style: none;")
-            | <li>.</a>
-            | <li><a href="/move?location=..">..</a></li>
+            | <li>. (#{place})
+            | <li><a href="/move?location=..">.. (Parent)</a></li>
             each loc in content
               if loc[0].endsWith('/')
-                |  <li><a href="javascript:copyLocation('#{place}#{loc[0]}')">*</a> <a href="/move?location=#{loc[0]}">#{loc[0]}</a> - Dir | #{loc[3]} | #{loc[1]}</li>
+                |  <li><a href="javascript:copyLocation('#{place}/#{loc[0]}')">*</a> <a href="/move?location=#{loc[0]}">#{loc[0]}</a> - Dir | #{loc[3]} | #{loc[1]}</li>
               else if loc[0].indexOf('=') > 0
                 - var symlink = loc[0].split('=')[1]
-                |  <li><a href="javascript:copyLocation('#{place}#{loc[0]}')">*</a> <a href="/move?location=#{symlink}">#{loc[0]}</a> - Dir | #{loc[3]} | #{loc[1]}</li>
+                |  <li><a href="javascript:copyLocation('#{place}/#{loc[0]}')">*</a> <a href="/move?location=#{symlink}">#{loc[0]}</a> - Dir | #{loc[3]} | #{loc[1]}</li>
               else if loc[0].startsWith('.') == false
-                |  <li><a href="javascript:copyLocation('#{place}#{loc[0]}')">*</a> <a href="javascript:previewText('#{place}#{loc[0]}')">#{loc[0]}</a> - #{loc[3]} | #{loc[1]} | #{loc[2]}</li>
+                |  <li><a href="javascript:copyLocation('#{place}/#{loc[0]}')">*</a> <a href="javascript:previewText('#{place}#{loc[0]}')">#{loc[0]}</a> - #{loc[3]} | #{loc[1]} | #{loc[2]}</li>
         #menulist.col
+          h4.subtitle メニュー
           ul(style="margin-top: 16px;")
             li
               a(href='javascript:location.reload()') リロード
@@ -203,11 +210,19 @@ html
             li
               a(href='/removedir', target='_blank') フォルダ削除(Windows不可)
             li
-              a(href='/copy', target='_blank') ファイルコピー
+              a(href='/copy', target='_blank') ファイル・フォルダのコピー
+            li
+              a(href='/copyfiles', target='_blank') 複数ファイルのコピー
             li
               a(href='/tarball', target='_blank') タールボール作成
             li
               a(href='/inflate', target='_blank') タールボール解凍
+            li
+              a(href='/exec', target='_blank') コマンド実行
+            li
+              a(href='/edittext', target='_blank') テキストファイルの編集
+            li
+              a(href='/chmod', target='_blank') ファイルモードの変更(Windows不可)
             li
               a(href='/places', target='_blank') 場所の編集
             li

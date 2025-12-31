@@ -1,0 +1,26 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title #{title}
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css')
+    link(rel='stylesheet', href="style1.css")
+  body
+    .container
+      h1 #{title}
+      .menu
+        a.p-3(href="javascript: window.close()") フォームを閉じる
+      .message #{message}
+      form.mt-4(method="POST")
+        .form-row
+          label.form-label
+            | ファイルモード (８進数で入力)
+            input.form-control(type="text", name="mode", id="mode", size="10", value=mode)
+        .form-row
+          label.form-label
+            | パス名
+            input.form-control(type="text", name="path", id="path", size="100" value=path)
+        div(style="margin-top: 16px;")
+          button.btn.btn-primary(type="submit") 実行する
+    p &nbsp;

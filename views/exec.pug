@@ -1,0 +1,50 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title #{title}
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css')
+    link(rel='stylesheet', href="style1.css")
+    style.
+      .result {
+        color: dimgray;
+        border: solid thin silver;
+        max-height: 360px;      // 最大高さ
+        height: 360px;          // 固定高さ（必要なら）
+        overflow: auto;         // スクロールを有効にする
+        white-space: pre-wrap;  // 折り返しを有効化（長い行を折る）
+        word-break: break-word; // 単語途中での改行を許可
+        background: #fff;
+        padding: 8px;
+        border-radius: 4px;        
+      }
+      h4 {
+        font-size: 1.2em;
+        margin-top: 24px;
+        color: teal;
+      }
+  body
+    .container
+      h1 #{title}
+      .menu
+        a.p-3(href="javascript: window.close()") フォームを閉じる
+      .message #{message}
+      form.mt-4(method="POST")
+        .form-row
+          label.form-label
+            | コマンド
+            input.form-control(type="text", name="command", id="command", size="100%", value=command)
+        .form-row
+          label.form-label
+            | 実行場所
+            input.form-control(type="text", name="place", id="place", size="100%", placeholder="/home/user", value=place)
+        div(style="margin-top: 16px;")
+          button.btn.btn-primary(type="submit") 実行する
+      h4 実行結果
+      pre.result #{result}
+      p &nbsp;
+      .text-center
+        a(href="#top") TOP
+      p &nbsp;
+      p &nbsp;

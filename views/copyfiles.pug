@@ -1,0 +1,89 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title #{title}
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css')
+    link(rel='stylesheet', href="style1.css")
+    style.
+      .result {
+        color: dimgray;
+        border: solid thin silver;
+        max-height: 360px;      // 最大高さ
+        height: 360px;          // 固定高さ（必要なら）
+        overflow: auto;         // スクロールを有効にする
+        white-space: pre-wrap;  // 折り返しを有効化（長い行を折る）
+        word-break: break-word; // 単語途中での改行を許可
+        background: #fff;
+        padding: 8px;
+        border-radius: 4px;        
+      }
+      h4 {
+        font-size: 1.2em;
+        margin-top: 24px;
+        color: teal;
+      }
+    script.
+      function clearData() {
+        const paths = document.getElementById('paths')
+        paths.value = ''
+      }
+  body
+    .container
+      h1  #{title}
+      .menu
+        a.p-3(href="javascript: window.close()") フォームを閉じる
+        | |
+        a.p-3(a href="javascript: clearData()") クリア
+      .message #{message}
+      form.mt-4(method="POST")
+        .form-row
+          label.form-label
+            | コピーするパス名リスト
+            textarea.form-control(name="paths", id="paths", cols="100", rows="6")= files
+        .form-row
+          p.text-info 検索条件
+          ul(style="list-style-type: none;")
+            li
+              input(type="radio", name="pattern_type", value="file_list", checked="true")
+              | &nbsp;ファイルリスト
+            li
+              input(type="radio", name="pattern_type", value="regexp")
+              | &nbsp;正規表現
+            li
+              input(type="radio", name="pattern_type", value="wildcard")
+              | &nbsp;ワイルドカード
+        .form-row
+          label.form-label
+            | フォルダ
+            input.form-control(type="text", name="folder", size="100%", placeholder="/home/user", value=folder) 
+        .form-row
+          label.form-label
+            | ファイル検索条件 (正規表現またはワイルドカードのときのみ)
+            input.form-control(type="text", name="search_text", size="60%", value=search_text) 
+        .form-row
+          label.form-label
+            | コピー先
+            input.form-control(type="text", name="destination", size="100%", placeholder="/home/user", value=destination)
+        .form-row
+          p.text-info 上書き条件
+          ul(style="list-style-type: none;")
+            li
+              input(type="radio", name="write_type", value="overwrite", checked="true")
+              | &nbsp;上書きする
+            li
+              input(type="radio", name="write_type", value="skip_existing")
+              | &nbsp;上書きしない
+            li
+              input(type="radio", name="write_type", value="check_date")
+              | &nbsp;日付で判断
+        br
+        button.btn.btn-primary(type="submit", name="action_type", value="copy") コピーする
+        button.btn.btn-secondary(type="submit", name="action_type", value="search" style="margin-left: 5px;") 検索する
+        br
+      p &nbsp;
+      .text-center
+        a(href="#top") TOP
+      p &nbsp;
+      p &nbsp;

@@ -15,14 +15,20 @@ html
       }
   body
     .container
-      h1 ファイルの削除
+      h1 #{title}
       .menu
         a.p-3(href="javascript: window.close()") フォームを閉じる
+
         //- a.p-3(href="javascript:pasteText()") 貼り付け
       form.mt-4(method="POST")
-        label.form-label
-          | 削除するファイルのパス名
-          input.form-control(name="file", id="file", size="80")
+        .form-row
+          label.form-label
+            | 削除するファイルのパス名 (ワイルドカード可)
+            input.form-control(name="file", id="file", size="80", value=file)
+        .form-row
+          label.form-label
+            input.form-checkbox(type="checkbox", name="wildcard", value=wildcard)
+            | &nbsp;ワイルドカード
         br
         button.btn.btn-primary 削除する
       p.message #{message}

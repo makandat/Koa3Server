@@ -11,7 +11,15 @@ import path from 'path'
 import fs from 'fs'
 import { format } from 'date-fns'
 import { fileURLToPath } from 'url'
-import { spawnSync } from 'child_process'
+import { spawnSync, execSync } from 'child_process'
+import { chdir } from 'node:process'
+import { globSync } from 'node:fs'
+
+// 定数定義
+const CWD = process.cwd()
+const UPLOAD_DIR = CWD + '/uploads'
+const FOLDERS = CWD + "/folders.txt"
+const PORT = 3230
 
 // __dirname を取得するヘルパー関数 (CJS では自動的に提供されるが、ESM では提供されないため)
 function getAppDir() {
@@ -97,12 +105,10 @@ function escapeHtml(text) {
 }
 
 // Koa アプリケーションの初期化
-const UPLOAD_DIR = './uploads'
 const app = new Koa()
 app.keys = ['koa3_server_key']
 app.use(session(app))
 const router = new Router()
-const PORT = process.env.PORT || 3230
 app.use(KoaLogger())
 // テンプレートエンジンの設定
 const __dirname = getAppDir()
@@ -199,7 +205,7 @@ router.post('/mkdir', async ctx => {
   const folder = ctx.request.body.folder
   try {
     fs.mkdirSync(folder)
-    await ctx.render('mkdir', {'message':`新しいフォルダが作成されました。`})
+    await ctx.render('mkdir', {'message':`新しいフォルダ ${folder} が作成されました。`})
   }
   catch (err) {
     await ctx.render('mkdir', {'message':`エラー： フォルダ の作成に失敗しました。${err.message}`})
@@ -245,16 +251,28 @@ router.post('/rename', async ctx => {
 
 // ファイル削除
 router.get('/delete', async ctx => {
-  await ctx.render('delete', {message:''})
+  await ctx.render('delete', {'title':'ファイルの削除', message:''})
 })
 router.post('/delete', async ctx => {
   try {
     const file = ctx.request.body.file
-    fs.unlinkSync(file)
-    await ctx.render('delete', {'message':'ファイルが削除されました。'})
+    const wildcard = ctx.request.body.wildcard == 'on' ? true : false
+    if (wildcard) {
+      // ワイルドカード対応
+      const files = globSync(file)
+      for (const f of files) {
+        fs.unlinkSync(f)
+      }
+      await ctx.render('delete', {'title':'ファイルの削除', 'message':`${files.length} 個のファイルが削除されました。`})
+      return
+    }
+    else {
+      fs.unlinkSync(file)
+      await ctx.render('delete', {'title':'ファイルの削除', 'message':file + ' が削除されました。'})
+    }
   }
   catch (err) {
-    await ctx.render('copy', {'message':`エラー： ファイルの削除に失敗しました。${err.message}`})
+    await ctx.render('delete', {'title':'ファイルの削除', 'message':`エラー： ファイルの削除に失敗しました。${err.message}`})
   }
 })
 
@@ -325,7 +343,7 @@ router.post('/inflate', async ctx => {
 
 // 標準の場所の編集
 router.get('/places', async ctx => {
-  const content = fs.readFileSync('./folders.txt', 'utf-8')
+  const content = fs.readFileSync(FOLDERS, 'utf-8')
   await ctx.render('folders', {message: '', content: content})
 })
 router.post('/places', async ctx => {
@@ -339,6 +357,240 @@ router.post('/places', async ctx => {
   }
 })
 
+// 複数ファイルのコピー
+router.get('/copyfiles', async ctx => {
+  await ctx.render('copyfiles', {'title':'複数ファイルのコピー', 'message':'', 'result':''})
+})
+router.post('/copyfiles', async ctx => {
+  // 正規表現を使ってファイル検索
+  async function re_find_files(dirPath, regex) {
+    const filenames = await fs.promises.readdir(dirPath)
+    const matchingFiles = filenames.filter(filename => 
+        regex.test(filename)
+      )
+      return matchingFiles
+  }
+  // 条件に合ったパスを検索
+  async function search_files(folder, search_text, pattern_type) {
+    let flist = []
+    switch (pattern_type) {
+      case 'regexp': 
+        const regex = new RegExp(search_text)
+        const flist2 = await re_find_files(folder, regex)
+        for (const f of flist2) {
+          flist.push(path.join(folder, f))
+        }
+        break
+      case 'wildcard':
+        flist = globSync(folder + "/" + search_text)
+        break
+      default:  // file_list
+        break
+    }
+    return flist
+  }
+  // ファイルコピーを実行する
+  async function copy_files(paths, destination, write_type) {
+    let cnt = 0
+    switch (write_type) {
+      case 'overwrite':  // 常に上書き
+        for (const p of paths) {
+          const filename = path.basename(p)
+          const destpath = path.join(destination, filename)
+          await fs.promises.copyFile(p, destpath)
+          cnt++
+        }
+        break
+      case 'skip_existing':  // 同じ名前のファイルがある場合は上書きしない
+        for (const p of paths) { 
+          const filename = path.basename(p)
+          const destpath = path.join(destination, filename)
+          if (fs.existsSync(destpath) == false) {
+            await fs.promises.copyFile(p, destpath)
+            cnt++
+          }
+        }
+        break
+      case 'check_date':  // 更新日時を比較して新しい場合のみ上書き
+        for (const p of paths) {
+          const filename = path.basename(p)
+          const destpath = path.join(destination, filename)
+          let copyFlag = true
+          if (fs.existsSync(destpath)) {
+            const srcStat = await fs.promises.stat(p)
+            const destStat = await fs.promises.stat(destpath)
+            if (srcStat.mtime <= destStat.mtime) {
+              copyFlag = false
+            }
+          }
+          if (copyFlag) {
+            await fs.promises.copyFile(p, destpath)
+            cnt++
+          }
+        }
+        break
+      default:
+        break
+    }
+    return cnt
+  }
+  // 変数初期化
+  let message = ''
+  let files = ''
+  // パラメータを取得
+  const action_type = ctx.request.body.action_type
+  const paths = ctx.request.body.paths
+  const pattern_type = ctx.request.body.pattern_type
+  const search_text = ctx.request.body.search_text
+  const folder = ctx.request.body.folder
+  const destination = ctx.request.body.destination
+  const write_type = ctx.request.body.write_type
+  // 送信ボタン種別による処理
+  switch (action_type) {
+    case 'copy':  // コピー
+      if (paths == '') {
+        await ctx.render('copyfiles', {'title':'複数ファイルのコピー', 'message':'エラー： ファイルリストが空欄です。', 'files':'', 'folder':folder, 'destination':destination})
+        return 
+      }
+      const pathArray = paths.split('\n').map(p => p.trim()).filter(p => p.length > 0)
+      const cnt = await copy_files(pathArray, destination, write_type)
+      files = pathArray.join('\n')
+      message = 'コピーされました。' + cnt + ' 個のファイル。'
+      break
+    case 'search':  // 検索
+    if (search_text == '') {
+        await ctx.render('copyfiles', {'title':'複数ファイルのコピー', 'message':'エラー： 検索条件が空欄です。', 'files':'', 'folder':folder, 'destination':destination})
+        return 
+      }
+      const list = await search_files(folder, search_text, pattern_type)
+      // テキストエリア更新
+      if (list.length > 0) {
+        for (const s of list) {
+          files += s + '\n'
+        }
+      }
+      else {
+        if (paths.length == 0) {
+          await ctx.render('copyfiles', {'title':'複数ファイルのコピー', 'message':'エラー： 検索結果が空です。', 'files':'', 'folder':folder, 'destination':destination, 'search_text':search_text})
+          return 
+        }
+      }
+      message = '検索されました。' + list.length + ' 個のファイル。'
+      break
+    default:
+      break
+  }
+  await ctx.render('copyfiles', {'title':'複数ファイルのコピー', 'message':message, 'files':files, 'folder':folder, 'destination':destination, 'search_text':search_text})
+})
+
+// テキストファイルの編集
+router.get('/edittext', async ctx => {
+  await ctx.render('edittext', {'title':'テキストファイルの編集', 'message':'', 'path':'', 'content':''})
+})
+router.post('/edittext', async ctx => {
+  const action_type = ctx.request.body.action_type
+  const path = ctx.request.body.path
+  if (path == '') {
+    await ctx.render('edittext', {'title':'テキストファイルの編集', 'message':'エラー： ファイルのパス名が指定されていません。', 'path':'', 'content':''})
+    return
+  }
+  let content = ctx.request.body.content
+  let message = ''
+  switch (action_type) {
+    case 'open':  // ファイルを開く
+      try {
+        content = await fs.promises.readFile(path, 'utf-8')
+        message = 'ファイルを読み込みました。'
+      }
+      catch (err) {
+        message = "エラー： " + err.message
+      }
+      break
+    case 'save':  // 上書き保存
+      try {
+        await fs.promises.writeFile(path, content, 'utf-8')
+        message = 'ファイルに上書き保存しました。'
+      }
+      catch (err) {
+        message = "エラー： " + err.message
+      }
+      break
+    case 'save_as':  // 名前を付けて保存
+      try {
+        if (fs.existsSync(path) == false) {
+          await fs.promises.writeFile(path, content, 'utf-8')
+          message = 'ファイルに新規保存しました。'
+        }
+        else {
+          message = "エラー： すでに同じ名前のファイルが存在します。"
+        }
+      }
+      catch (err) {
+        message = "エラー： " + err.message
+      }
+      break
+    default:
+      break
+  }
+  await ctx.render('edittext', {'title':'テキストファイルの編集', 'message':message, 'path':path, 'content':content})
+})
+
+// コマンド実行
+router.get('/exec', async ctx => {
+  await ctx.render('exec', {'title':'コマンド実行', 'message':'', 'result': '', 'command':'', 'place':''})
+})
+router.post('/exec', async ctx => {
+  const command = ctx.request.body.command
+  const place = ctx.request.body.place
+  let message = ''
+  let result = ''
+  try {
+    if (place != '') {
+      chdir(place)
+    }
+    result = execSync(command).toString()
+    message = 'コマンドが実行されました。'
+  }
+  catch (err)
+  {
+    message = 'エラー： ' + err.message
+  }
+  finally {
+    await ctx.render('exec', {'title':'コマンド実行', 'message':message, 'command':command, 'place':place, 'result':result})
+  }
+})
+
+// ファイルモードの変更
+router.get('/chmod', async ctx => {
+  let message = ''
+  if (process.platform == 'win32')
+    message = 'この機能は Windows では利用できません。'
+  await ctx.render('chmod', {'title':'ファイルモードの変更', 'message':message, 'mode':'0755', 'path':''})
+})
+router.post('/chmod', async ctx => {
+  const path = ctx.request.body.path
+  if (path == '') {
+    await ctx.render('chmod', {'title':'ファイルモードの変更', 'message':'エラー： ファイルのパス名が指定されていません。', 'mode':'0755', 'path':''})
+    return
+  }
+  const mode = ctx.request.body.mode
+  if (mode == '') {
+    await ctx.render('chmod', {'title':'ファイルモードの変更', 'message':'エラー： ファイルモードが指定されていません。', 'mode':'0755', 'path':path})
+    return
+  }
+  let message = ''
+  try {
+    const mode8 = parseInt(mode, 8)
+    await fs.promises.chmod(path, mode8)
+    message = 'ファイルモードが ' + mode + ' に変更されました。'
+  }
+  catch (err) {
+    message = 'エラー： ' + err.message
+  }
+  await ctx.render('chmod', {'title':'ファイルモードの変更', 'message':message, 'mode':mode, 'path':path})
+})
+
+//
 // 結果を表示する。
 router.get('/result', async ctx => {
   const title = ctx.request.query.title
@@ -354,6 +606,7 @@ router.get('/get_textfile', async ctx => {
   ctx.body = content
 })
 
+/*  START */
 // アプリケーションにルートを適用する。
 app.use(router.routes()).use(router.allowedMethods());
 

@@ -8,17 +8,17 @@ html
     link(rel='stylesheet', href="style1.css")
   body
     .container
-      h1 ファイルのコピー
+      h1 ファイル・フォルダのコピー
       .menu
         a.p-3(href="javascript: window.close()") フォームを閉じる
       form.mt-4(method="POST")
         label.form-label
-          | コピー元のファイルのパス名
-          input.form-control(name="sourcefile", id="sourcefile", size="80")
+          | コピー元のパス名
+          input.form-control(name="sourcefile", id="sourcefile", size="100%")
         br
         label.form-label
-          | コピー先のファイルのパス名(フォルダも可)
-          input.form-control(name="destfile", id="destfile", size="80")
+          | コピー先のパス名
+          input.form-control(name="destfile", id="destfile", size="100%")
         br
         button.btn.btn-primary コピーする
       p.message #{message}
